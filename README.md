@@ -20,10 +20,11 @@ cp .env.example .env
 ```
 
 Open the `.env` file and fill in the missing values.  
-LINKEDIN_USERNAME: Your LinkedIn username, for example `kostya-numan`. You MUST own this account for the tool to work.  
-LINKEDIN_COOKIES: The cookies that you get when you log in to LinkedIn.  
+
+`LINKEDIN_USERNAME`: Your LinkedIn username, for example `kostya-numan`. You MUST own this account for the tool to work.  
+`LINKEDIN_COOKIES`: The cookies that you get when you log in to LinkedIn.  
 You can get them by opening the developer tools in your browser (network tab), reloading any Linkedin page, opening the first request in the list of requests in dev tools, scolling to the "Request Headers" section, and copying the full "Cookie" value.  
-DATABASE_*: PostgreSQL database connection settings.  
+`DATABASE_*`: PostgreSQL database connection settings.  
 
 3. Install the dependencies by running 
 
