@@ -1,0 +1,11 @@
+fastapi==0.111.1
+uvicorn==0.30.3
+aiohttp==3.10.2
+aiosqlite==0.19.0
+peewee==3.16.0
+beautifulsoup4==4.12.3
+peewee_async==0.12.1
+python-dotenv==1.0.1
+aiopg==1.4.0
+click==8.1.7
+colorama==0.4.6
