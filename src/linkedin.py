@@ -126,7 +126,7 @@ async def get_my_post_analytics(post_id: str) -> PostAnalytics | None:
             content = await response.text()
 
             if 'Analytics failed to load' in content:
-                logger.error('You might not have access to this post %s', post_id)
+                logger.error('You might not have access to this post %s or analytics is being generated', post_id)
                 return None
 
             soup = BeautifulSoup(content, 'html.parser')
@@ -144,14 +144,29 @@ async def get_my_post_analytics(post_id: str) -> PostAnalytics | None:
 
             data = json.loads(code.text.strip())['included'][2]
             component = data['component']
+            if component['summary']:
+                for item in component['summary']['detail']['ctaList']['items']:
+                    if item['title'] == 'Reactions':
+                        reactions = int(item['text'].replace(',', ''))
+                    elif item['title'] == 'Comments':
+                        comments = int(item['text'].replace(',', ''))
+                    elif item['title'] == 'Reposts':
+                        reposts = int(item['text'].replace(',', ''))
+                    else:
+                        logger.warning('Unknown title in post analytics: %s', item['title'])
 
-            for item in component['summary']['detail']['ctaList']['items']:
-                if item['title'] == 'Reactions':
-                    reactions = int(item['text'].replace(',', ''))
-                if item['title'] == 'Comments':
-                    comments = int(item['text'].replace(',', ''))
-                if item['title'] == 'Reposts':
-                    reposts = int(item['text'].replace(',', ''))
+            data = json.loads(code.text.strip())['included'][3]
+            component = data['component']
+            if component['summary']:
+                for item in component['summary']['detail']['ctaList']['items']:
+                    if item['title'] == 'Reactions':
+                        reactions = int(item['text'].replace(',', ''))
+                    elif item['title'] == 'Comments':
+                        comments = int(item['text'].replace(',', ''))
+                    elif item['title'] == 'Reposts':
+                        reposts = int(item['text'].replace(',', ''))
+                    else:
+                        logger.warning('Unknown title in post analytics: %s', item['title'])
 
             data = json.loads(code.text.strip())['included'][6]
             post_content = data['commentary']['commentaryText']['text']
@@ -159,9 +174,9 @@ async def get_my_post_analytics(post_id: str) -> PostAnalytics | None:
             return PostAnalytics(
                 post_id=post_id,
                 content=post_content,
-                reposts_count=reposts,
-                comments_count=comments,
-                reactions_count=reactions,
-                impressions_count=impressions,
-                unique_views_count=unique_views,
+                reposts_count=reposts or 0,
+                comments_count=comments or 0,
+                reactions_count=reactions or 0,
+                impressions_count=impressions or 0,
+                unique_views_count=unique_views or 0,
             )
