@@ -19,10 +19,11 @@ cd linkedin-post-analytics/
 cp .env.example .env
 ```
 
-Open the `.env` file and fill in the missing values.
-LINKEDIN_USERNAME: Your LinkedIn username, for example `kostya-numan`. You MUST own this account for the tool to work.
-LINKEDIN_COOKIES: The cookies that you get when you log in to LinkedIn. You can get them by opening the developer tools in your browser (network tab), reloading the page, opening the first request, scolling to the "Request Headers" section, and looking at the `li_sugr` cookie.
-DATABASE_*: PostgreSQL database connection settings
+Open the `.env` file and fill in the missing values.  
+LINKEDIN_USERNAME: Your LinkedIn username, for example `kostya-numan`. You MUST own this account for the tool to work.  
+LINKEDIN_COOKIES: The cookies that you get when you log in to LinkedIn.  
+You can get them by opening the developer tools in your browser (network tab), reloading any Linkedin page, opening the first request in the list of requests in dev tools, scolling to the "Request Headers" section, and copying the full "Cookie" value.  
+DATABASE_*: PostgreSQL database connection settings.  
 
 3. Install the dependencies by running 
 
@@ -37,9 +38,9 @@ pip install -r requirements.txt
 
 1. Add your LinkedIn user to the database
 
-Go to your profile and copy the username from the URL.
-For example, if the URL is https://www.linkedin.com/in/kostya-numan/
-then the username is "kostya-numan".
+Go to your profile and copy the username from the URL.  
+For example, if the URL is https://www.linkedin.com/in/kostya-numan/  
+then the username is "kostya-numan".  
 
 ```bash
 python -m analytics add-user "your-username"
@@ -47,9 +48,9 @@ python -m analytics add-user "your-username"
 
 2. Add your LinkedIn posts to the database
 
-Go to your post and copy the post ID from the URL.
-For example, if the URL is https://www.linkedin.com/feed/update/urn:li:activity:7227740367670898688/
-then the post ID is "7227740367670898688".
+Go to your post and copy the post ID from the URL.  
+For example, if the URL is https://www.linkedin.com/feed/update/urn:li:activity:7227740367670898688/  
+then the post ID is "7227740367670898688".  
 
 ```bash
 python -m analytics add-post "your-username" "post-id"

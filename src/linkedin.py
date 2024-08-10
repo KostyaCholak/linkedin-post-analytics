@@ -75,7 +75,11 @@ async def get_my_user_analytics() -> UserAnalytics | None:
             content = await response.text()
             soup = BeautifulSoup(content, 'html.parser')
             code = soup.find_all('code')[-3]
-            data = json.loads(code.text.strip())['data']['data']
+            try:
+                data = json.loads(code.text.strip())['data']['data']
+            except json.JSONDecodeError:
+                logger.error('Looks like the LinkedIn cookies are invalid')
+                exit(1)
             section = data['feedDashCreatorExperienceDashboard']['section'][0]['analyticsSection']
             analytics = section['analyticsPreviews']
 
