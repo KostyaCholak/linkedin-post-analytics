@@ -23,7 +23,7 @@ jobs:
           EXCLUDE: "chrome_plugin/"
           SCRIPT_AFTER: |
             cd ${{ secrets.REMOTE_TARGET }}
+            cp ~/linkedin_analytics_backend_env .env
             docker compose up -d --build
-            cp ~/analytics_backend_env .env
           SCRIPT_AFTER_REQUIRED: true
   
