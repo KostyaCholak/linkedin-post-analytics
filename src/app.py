@@ -25,6 +25,7 @@ app = FastAPI(root_path="/linkedin/api/v1")
 
 origins = [
     "https://linkedin.com/",
+    "https://www.linkedin.com/"
 ]
 
 app.add_middleware(
