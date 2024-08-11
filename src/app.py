@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-
-app = FastAPI()
+# set base_url to "/linkedin" 
+app = FastAPI(root_path="/linkedin/api/v1")
 
 origins = [
     "https://linkedin.com/",
@@ -36,7 +36,7 @@ app.add_middleware(
 )
 
 
-@app.get("/linkedin/post/{post_id}/stats")
+@app.get("/post/{post_id}/stats")
 async def list_post_stats(post_id: str):
     states = await database.get_post_states(post_id)
     return [{
@@ -45,7 +45,7 @@ async def list_post_stats(post_id: str):
     } for state in states]
 
 
-@app.get("/linkedin/user/{username}/stats")
+@app.get("/user/{username}/stats")
 async def list_user_stats(username: str):
     user = await database.get_linkedin_user(username)
     if not user:
@@ -58,7 +58,7 @@ async def list_user_stats(username: str):
     } for state in states]
 
 
-@app.post("/linkedin/post/{post_id}/stats")
+@app.post("/post/{post_id}/stats")
 async def create_post_stats(post_id: str, impression_count: int, comment_count: int, reactions_count: int, reposts_count: int):
     post = await database.get_linkedin_post(post_id)
     if not post:
@@ -76,7 +76,7 @@ async def create_post_stats(post_id: str, impression_count: int, comment_count: 
     return {'success': True}
 
 
-@app.post("/linkedin/user/{username}/stats")
+@app.post("/user/{username}/stats")
 async def create_user_stats(username: str, followers_count: int, connections_count: int, profile_views_count: int, post_impressions_count: int, search_appears_count: int):
     user = await database.get_linkedin_user(username)
     if not user:
