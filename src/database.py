@@ -190,9 +190,26 @@ async def get_post_states(post_id: str) -> list[LinkedInPostState]:
         return {}
     
     # list all states
-    states = await objects.execute(LinkedInPostState.select().where(LinkedInPostState.post==post))
+    states = await objects.execute(
+        LinkedInPostState.select()
+            .where(LinkedInPostState.post==post)
+            .order_by(LinkedInPostState.created_at.desc())
+    )
 
     return states
+
+
+async def get_user_states(user: LinkedInUser) -> list[LinkedInUserState]:
+    logger.info('Getting states for user "%s"', user.username)
+    # list all states
+    states = await objects.execute(
+        LinkedInUserState.select()
+            .where(LinkedInUserState.user==user)
+            .order_by(LinkedInUserState.created_at.desc())
+    )
+
+    return states
+
 
 async def close():
     await objects.close()
