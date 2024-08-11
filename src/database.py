@@ -184,6 +184,16 @@ async def get_user_posts(user: LinkedInUser) -> list[LinkedInPost]:
     return await objects.execute(LinkedInPost.select().where(LinkedInPost.user==user))
 
 
+async def get_post_states(post_id: str) -> list[LinkedInPostState]:
+    post = await get_linkedin_post(post_id)
+    if not post:
+        return {}
+    
+    # list all states
+    states = await objects.execute(LinkedInPostState.select().where(LinkedInPostState.post==post))
+
+    return states
+
 async def close():
     await objects.close()
     db.close()

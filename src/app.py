@@ -1,16 +1,15 @@
-import os
-import time
-import asyncio
 import logging
-import datetime
 
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from analytics_backend.src.linkedin import PostAnalytics, UserAnalytics
 
 from . import database
-from . import linkedin
 
 
-logging.basicConfig(filename='analytics_log.txt', level=logging.INFO)
+logging.basicConfig(filename='server_log.txt', level=logging.INFO)
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -21,71 +20,73 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-LINKEDIN_USERNAME = os.environ['LINKEDIN_USERNAME']
+
+app = FastAPI()
+
+origins = [
+    "https://linkedin.com/",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-async def main(username: str):
-    next_update = time.time()
-    while True:
-        await update_user_data(username)
-        next_update = next_update + 60
-        await asyncio.sleep(next_update - time.time())
+@app.get("/post/{post_id}/stats")
+async def list_post_stats(post_id: str):
+    states = await database.get_post_states(post_id)
+    return [{
+        'time': state.created_at.isoformat(),
+        'impressions': state.impressions_count,
+    } for state in states]
 
 
-async def update_user_data(username: str):
-    logger.info('Saving user state for "%s"', username)
+@app.get("/user/{username}/stats")
+async def list_user_stats(username: str):
     user = await database.get_linkedin_user(username)
-    if user is None:
-        logger.info('User "%s" not found in the database', username)
-        raise Exception('User not found')
+    if not user:
+        return {'error': 'User not found'}
     
-    await save_user_state(user)
-    posts = await database.get_user_posts(user)
-    for post in posts:
-        await save_post_state(post)
+    states = await database.get_user_states(user)
+    return [{
+        'time': state.created_at.isoformat(),
+        'followers': state.followers_count,
+    } for state in states]
 
 
-async def save_user_state(user: database.LinkedInUser):
-    update_after = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=1)
-    last_state = await database.get_user_last_state(user)
+@app.post("/post/{post_id}/stats")
+async def create_post_stats(post_id: str, impression_count: int, comment_count: int, reactions_count: int, reposts_count: int):
+    post = await database.get_linkedin_post(post_id)
+    if not post:
+        return {'error': 'Post not found'}
 
-    if last_state is not None and last_state.created_at.astimezone(datetime.timezone.utc) > update_after:
-        logger.info('Skipping user "%s" because it was already saved', user.username)
-        return
-
-    user_analytics = await linkedin.get_my_user_analytics()
-    if user_analytics is not None:
-        await database.new_user_state(user, user_analytics)
-
-
-async def save_post_state(post: database.LinkedInPost):
-    now = datetime.datetime.now(datetime.timezone.utc)
-
-    time_since_creation = now - post.post_created_at.astimezone(datetime.timezone.utc)
-    if time_since_creation < datetime.timedelta(hours=1):
-        update_after = now - datetime.timedelta(minutes=1)
-    elif time_since_creation < datetime.timedelta(hours=24):
-        update_after = now - datetime.timedelta(minutes=5)
-    elif time_since_creation < datetime.timedelta(days=7):
-        update_after = now - datetime.timedelta(hours=60)
-    elif time_since_creation < datetime.timedelta(days=14):
-        update_after = now - datetime.timedelta(hours=6)
-    else:
-        logger.debug('Skipping post "%s" because it was created more than a week ago', post.id)
-        return
-    
-    last_state = await database.get_post_last_state(post)
-    last_state_time = last_state.created_at if last_state is not None else None
-    if last_state_time is not None and last_state_time.astimezone(datetime.timezone.utc) > update_after:
-        logger.debug('Skipping post "%s" because it was already saved', post.id)
-        return
-    
-    post_analytics = await linkedin.get_my_post_analytics(post.id)
-    if post_analytics is None:
-        return
-    
-    await database.new_post_state(post, post_analytics)
+    await database.new_post_state(post, PostAnalytics(
+        post_id=post_id,
+        content="",
+        impressions_count=impression_count,
+        comments_count=comment_count,
+        reactions_count=reactions_count,
+        reposts_count=reposts_count,
+        unique_views_count=0,
+    ))
+    return {'success': True}
 
 
-if __name__ == '__main__':
-    asyncio.run(main(LINKEDIN_USERNAME))
+@app.post("/user/{username}/stats")
+async def create_user_stats(username: str, followers_count: int, connections_count: int, profile_views_count: int, post_impressions_count: int, search_appears_count: int):
+    user = await database.get_linkedin_user(username)
+    if not user:
+        return {'error': 'User not found'}
+
+    await database.new_user_state(user, UserAnalytics(
+        followers_count=followers_count,
+        connections_count=connections_count,
+        profile_views_count=profile_views_count,
+        post_impressions_count=post_impressions_count,
+        search_appears_count=search_appears_count,
+    ))
+    return {'success': True}

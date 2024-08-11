@@ -62,11 +62,11 @@ def analyze(username: str):
 
 You must own the account for the tool to work.
 """
-    from src.app import main
+    from src.analyze import analyze
 
     async def task():
         try:
-            await main(username)
+            await analyze(username)
         except KeyboardInterrupt:
             click.echo(click.style("Exiting...", fg="red"))
         finally:

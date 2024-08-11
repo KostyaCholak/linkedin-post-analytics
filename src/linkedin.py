@@ -77,9 +77,10 @@ async def get_my_user_analytics() -> UserAnalytics | None:
             code = soup.find_all('code')[-3]
             try:
                 data = json.loads(code.text.strip())['data']['data']
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, KeyError):
                 logger.error('Looks like the LinkedIn cookies are invalid')
                 exit(1)
+            
             section = data['feedDashCreatorExperienceDashboard']['section'][0]['analyticsSection']
             analytics = section['analyticsPreviews']
 
@@ -144,7 +145,7 @@ async def get_my_post_analytics(post_id: str) -> PostAnalytics | None:
 
             data = json.loads(code.text.strip())['included'][2]
             component = data['component']
-            if component['summary']:
+            if component and component['summary']:
                 for item in component['summary']['detail']['ctaList']['items']:
                     if item['title'] == 'Reactions':
                         reactions = int(item['text'].replace(',', ''))
@@ -157,7 +158,7 @@ async def get_my_post_analytics(post_id: str) -> PostAnalytics | None:
 
             data = json.loads(code.text.strip())['included'][3]
             component = data['component']
-            if component['summary']:
+            if component and component['summary']:
                 for item in component['summary']['detail']['ctaList']['items']:
                     if item['title'] == 'Reactions':
                         reactions = int(item['text'].replace(',', ''))
@@ -169,7 +170,11 @@ async def get_my_post_analytics(post_id: str) -> PostAnalytics | None:
                         logger.warning('Unknown title in post analytics: %s', item['title'])
 
             data = json.loads(code.text.strip())['included'][6]
-            post_content = data['commentary']['commentaryText']['text']
+            try:
+                post_content = data['commentary']['commentaryText']['text']
+            except KeyError:
+                logger.warning('Failed to get post content')
+                post_content = ""
 
             return PostAnalytics(
                 post_id=post_id,
