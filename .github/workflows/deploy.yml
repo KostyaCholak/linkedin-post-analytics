@@ -16,11 +16,14 @@ jobs:
       with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           ARGS: "-rlgoDzvc -i --delete"
-          SOURCE: "dist/"
+          SOURCE: "."
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
           EXCLUDE: "chrome_plugin/"
           SCRIPT_AFTER: |
+            cd ${{ secrets.REMOTE_TARGET }}
             docker compose up -d --build
+            cp ~/analytics_backend_env .env
+          SCRIPT_AFTER_REQUIRED: true
   
