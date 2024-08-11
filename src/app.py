@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from analytics_backend.src.linkedin import PostAnalytics, UserAnalytics
+from src.linkedin import PostAnalytics, UserAnalytics
 
 from . import database
 
