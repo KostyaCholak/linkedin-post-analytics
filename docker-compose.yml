@@ -3,5 +3,3 @@ services:
     build: .
     ports:
       - "8383:80"
-    volumes:
-      - ./server_log.txt:/app/server_log.txt
