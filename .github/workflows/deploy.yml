@@ -11,14 +11,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.x'
-    - name: Install dependencies
-      run: npm install
-    - name: Run build task
-      run: npm run build
     - name: Deploy to Server
       uses: easingthemes/ssh-deploy@main
       with:
@@ -28,4 +20,7 @@ jobs:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
-          EXCLUDE: "/dist/, /node_modules/"
+          EXCLUDE: "chrome_plugin/"
+          SCRIPT_AFTER: |
+            docker compose up -d --build
+  
